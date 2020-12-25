@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Page Title</title>
+</head>
+<body>
+
+  <style>
+    body {
+      background-color: #fff;
+      color: #111;
+      margin: 0px;
+      overflow: hidden;
+      font-family: Monospace;
+      font-size: 18px;
+      position: absolute;
+    }
+
+    #info {
+      position: absolute;
+      top: 3%;
+      width: 100%;
+      padding: 5px;
+      text-align: center;
+      color: #ffff00;
+    }
+  </style>
+
+  <script src="https://threejs.org/build/three.js"></script>
+  <script src="https://threejs.org/examples/js/controls/OrbitControls.js">
+  </script>
+  <script src="https://code.jquery.com/jquery-2.1.4.min.js">
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.5.1/dat.gui.min.js">
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r16/Stats.min.js"></script>
+  <script src="http://threejs.org/examples/js/loaders/OBJLoader.js"></script>
+  <script src="http://threejs.org/examples/js/loaders/MTLLoader.js"></script>
+  <script src="http://threejs.org/examples/js/loaders/ColladaLoader.js"></script>
+  <script src="http://threejs.org/examples/js/loaders/TGALoader.js"></script>
+  <script src="http://threejs.org/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://threejs.org/examples/js/libs/stats.min.js"></script>
+
+  <audio id="soundtrack" autoplay loop style="display:none">
+<source src="Jingle_Bell.mp3" type='audio/mp3'>
+
+<script>
+
+
+
+
+
+var renderer, camera, controls, scene, points;
+let stats = initStats();
+var colorSets = [0xffffff, 0xffff00, 0xff00ff, 0xff0000, 0x00ffff, 0x00ff00, 0x0000ff];
+
+init();
+animate();
+
+function init() {
+
+  renderer = new THREE.WebGLRenderer({
+    antialias: true
+  });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setClearColor(0x222222);
+  document.body.appendChild(renderer.domElement);
+
+  camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.01, 1000);
+  camera.position.z = 300; // important
+  camera.position.y = 200; // important
+  camera.position.x = 300; // important
+
+
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+  scene = new THREE.Scene();
+  //光
+  var hemisphereLight = new THREE.HemisphereLight(0xaaaaaa,0x000000)
+	var ambientLight = new THREE.AmbientLight(0xdc8874);
+	var light = new THREE.DirectionalLight( new THREE.Color('rgb(200,200,200)') ); // soft white ligh t
+  light.position.set(-45,100,-45)
+  //let gridXZ = new THREE.GridHelper(100, 10, 'red', 'white');
+  //scene.add(gridXZ);
+
+
+  let axes = new THREE.AxisHelper(10);
+  //scene.add(axes);
+  background();
+  moon = Moon();
+  scene.add (moon);
+  snowman = Snowman();
+  scene.add (snowman);
+  //santa = Santa();
+  //scene.add (santa);
+  snowflakes()
+  //paintFloor();
+  Tree();
+  Gift();
+  Sleight();
+  Alien();
+  Bar();
+  window.addEventListener('resize', onWindowResize, false);
+  scene.add(light);
+
+
+
+	scene.add(hemisphereLight);
+	scene.add(ambientLight);
+}
+
+function background(){
+  var textureLoader = new THREE.TextureLoader();
+  // 加载背景图片
+  var texture = textureLoader.load('sora5.jpg');
+  // 纹理对象Texture赋值给场景对象的背景属性.background
+  scene.background = texture
+}
+
+
+
+function Tree () {
+  var Tree = new THREE.Object3D();
+	Tree.castShadow = true;
+	Tree.receiveShadow = true;
+
+  var mtlLoader = new THREE.MTLLoader();
+  mtlLoader.load('Tree1.mtl', function(materials) {
+      var objLoader = new THREE.OBJLoader();
+      objLoader.setMaterials(materials);
+      objLoader.load('Tree1.obj', function(object) {
+      object.castShadow = true;
+      object.receiveShadow = true;
+      object.scale.set(100,100,100)
+      object.position.set(-5,40,0)
+      object.rotation.y=-Math.PI/2
+      object.rotation.x=-Math.PI/1.5
+      Tree.add(object);
+      });
+  });
+  Tree.name = 'Tree';
+  scene.add(Tree);
+}
+
+function Moon () {
+  var Moon = new THREE.Object3D();
+	Moon.castShadow = true;
+	Moon.receiveShadow = true;
+
+  var mtlLoader = new THREE.MTLLoader();
+  mtlLoader.load('PUSHILIN_moon.mtl', function(materials) {
+      var objLoader = new THREE.OBJLoader();
+      objLoader.setMaterials(materials);
+      objLoader.load('PUSHILIN_moon.obj', function(object) {
+      object.castShadow = true;
+      object.receiveShadow = true;
+      object.scale.set(10,10,10)
+      object.position.set(35,55,-25)
+      Moon.add(object);
+      });
+  });
+  Moon.name = 'Moon';
+	return Moon;
+}
+
+function Bar () {
+  var Bar = new THREE.Object3D();
+	Bar.castShadow = true;
+	Bar.receiveShadow = true;
+
+  var geometry = new THREE.TorusGeometry( 10, 3, 16, 100 )
+	var material = new THREE.MeshPhongMaterial({color: 0xc4740a, shading: THREE.FlatShading });
+	var circle = new THREE.Mesh( geometry, material );
+  circle.receiveShadow = true;
+  circle.receiveShadow = true;
+  Bar.add(circle)
+
+  geometry = new THREE.CylinderGeometry( 3, 3, 90, 32 );
+  material = new THREE.MeshPhongMaterial( {color: 0xc4740a, shading: THREE.FlatShading } );
+  cylinder = new THREE.Mesh( geometry, material );
+  cylinder.receiveShadow = true;
+  cylinder.receiveShadow = true;
+  cylinder.rotation.z=-Math.PI/2
+  cylinder.position.set(55,0,0)
+  Bar.add(cylinder)
+
+  var geometry = new THREE.IcosahedronBufferGeometry( 10, 30 );
+	var material = new THREE.MeshPhongMaterial({color: 0xc4740a, shading: THREE.FlatShading });
+	var lock = new THREE.Mesh( geometry, material );
+	lock.receiveShadow = true;
+	lock.receiveShadow = true;
+  lock.position.set(100,0,0)
+  Bar.add(lock)
+  Bar.rotation.x=Math.PI/2
+  Bar.rotation.y=Math.PI/13
+  Bar.rotation.z=Math.PI/20
+
+  Bar.position.set(50,0,50)
+///////////////////////////////////////////////
+  var Bar2 = new THREE.Object3D();
+	Bar2.castShadow = true;
+	Bar2.receiveShadow = true;
+
+  var geometry = new THREE.TorusGeometry( 10, 3, 16, 100 )
+	var material = new THREE.MeshPhongMaterial({color: 0xc4740a, shading: THREE.FlatShading });
+	var circle = new THREE.Mesh( geometry, material );
+  circle.receiveShadow = true;
+  circle.receiveShadow = true;
+  Bar2.add(circle)
+
+  geometry = new THREE.CylinderGeometry( 3, 3, 90, 32 );
+  material = new THREE.MeshPhongMaterial( {color: 0xc4740a, shading: THREE.FlatShading } );
+  cylinder = new THREE.Mesh( geometry, material );
+  cylinder.receiveShadow = true;
+  cylinder.receiveShadow = true;
+  cylinder.rotation.z=-Math.PI/2
+  cylinder.position.set(55,0,0)
+  Bar2.add(cylinder)
+
+  var geometry = new THREE.IcosahedronBufferGeometry( 10, 30 );
+	var material = new THREE.MeshPhongMaterial({color: 0xc4740a, shading: THREE.FlatShading });
+	var lock = new THREE.Mesh( geometry, material );
+	lock.receiveShadow = true;
+	lock.receiveShadow = true;
+  lock.position.set(100,0,0)
+  Bar2.add(lock)
+  Bar2.rotation.x=Math.PI/2
+  Bar2.rotation.y=Math.PI/8
+  Bar2.rotation.z=Math.PI/15
+
+  Bar2.position.set(50,0,-50)
+
+  scene.add(Bar2)
+  scene.add(Bar)
+}
+
+function Snowman () {
+  var Snowman = new THREE.Object3D();
+	Snowman.castShadow = true;
+	Snowman.receiveShadow = true;
+
+  var mtlLoader = new THREE.MTLLoader();
+  mtlLoader.load('snowman.mtl', function(materials) {
+      var objLoader = new THREE.OBJLoader();
+      objLoader.setMaterials(materials);
+      objLoader.load('snowman.obj', function(object) {
+        object.castShadow = true;
+        object.receiveShadow = true;
+        object.scale.set(40,40,40)
+        //object.rotation.y= -Math.PI/2
+        object.position.set(35,60,25)
+        Snowman.add(object);
+      });
+  });
+  Snowman.name = 'Snowman';
+	return Snowman;
+}
+
+function Gift () {
+  var Gift = new THREE.Object3D();
+	Gift.castShadow = true;
+	Gift.receiveShadow = true;
+
+  var mtlLoader = new THREE.MTLLoader();
+  mtlLoader.load('gift.mtl', function(materials) {
+      var objLoader = new THREE.OBJLoader();
+      objLoader.setMaterials(materials);
+      objLoader.load('gift.obj', function(object) {
+        object.castShadow = true;
+        object.receiveShadow = true;
+        object.scale.set(40,40,40)
+        object.rotation.z= Math.PI/90
+        object.rotation.y= Math.PI/2
+        object.position.set(-52,45,0)
+        Gift.add(object);
+      });
+  });
+  Gift.name = 'Gift';
+	scene.add(Gift);
+}
+
+function Sleight () {
+  var Sleight = new THREE.Object3D();
+	Sleight.castShadow = true;
+	Sleight.receiveShadow = true;
+
+  var mtlLoader = new THREE.MTLLoader();
+  mtlLoader.load('sleight.mtl', function(materials) {
+      var objLoader = new THREE.OBJLoader();
+      objLoader.setMaterials(materials);
+      objLoader.load('sleight.obj', function(object) {
+        object.castShadow = true;
+        object.receiveShadow = true;
+        object.rotation.x= -Math.PI/2
+        object.scale.set(0.8,0.8,0.8)
+        object.position.set(-80,0,0)
+        Sleight.add(object);
+      });
+  });
+  Sleight.name = 'Sleight';
+	scene.add(Sleight);
+}
+function Alien () {
+  var Alien = new THREE.Object3D();
+	Alien.castShadow = true;
+	Alien.receiveShadow = true;
+
+  var mtlLoader = new THREE.MTLLoader();
+  mtlLoader.load('alien.mtl', function(materials) {
+      var objLoader = new THREE.OBJLoader();
+      objLoader.setMaterials(materials);
+      objLoader.load('alien.obj', function(object) {
+        object.castShadow = true;
+        object.receiveShadow = true;
+        object.rotation.y= Math.PI/2
+        object.scale.set(70,70,70)
+        object.position.set(100,0,0)
+        Alien.add(object);
+      });
+  });
+  Alien.name = 'Alien';
+	scene.add(Alien);
+}
+
+
+
+function snowflakes(){
+  let texture = new THREE.TextureLoader().load('snowflakes.jpg');
+        let geometry= new THREE.Geometry();
+        let pointsMaterial = new THREE.PointsMaterial({
+            size:2,
+            transparent:true,
+            opacity:0.8,
+            map:texture,
+            blending:THREE.AdditiveBlending,
+            sizeAttenuation:true,
+            depthTest: false
+        });
+
+        let range = 1000;
+        for (let i = 0; i < 3000; i++ ) {
+            let vertice = new THREE.Vector3(
+                Math.random() * range - range / 2,
+                Math.random() * range * 1.5,
+                Math.random() * range - range / 2);
+            /* 纵向移动速度 */
+            vertice.velocityY = 0.1 + Math.random() / 3;
+            /* 横向移动速度 */
+            vertice.velocityX = (Math.random() - 0.5) / 3;
+            /* 将顶点加入几何 */
+            geometry.vertices.push(vertice);
+        }
+
+        geometry.center();
+
+        points = new THREE.Points(geometry, pointsMaterial);
+        points.position.y = 10;
+
+        scene.add(points);
+}
+
+
+function paintFloor() {
+    var loader = new THREE.TextureLoader;
+    loader.load('stone.jpg', function (texture) {
+        //x和y超过图片像素之后重复绘制图片
+        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+        //设置地板重复绘制的密度是1 * 1
+        texture.repeat.set(5, 5);
+
+        //设置材质是双面材质
+        var material = new THREE.MeshLambertMaterial({
+            map : texture,
+            side : THREE.DoubleSide
+        });
+
+        //创建普通的平面几何体
+        var gemotery = new THREE.PlaneGeometry(100, 100, 1, 1);
+
+        //创建网格对象
+        var mesh = new THREE.Mesh(gemotery,material);
+        mesh.position.y = 0;
+        mesh.rotation.x = Math.PI/2;
+
+        scene.add(mesh);
+    });
+}
+
+/*function Santa () {
+  var Santa = new THREE.Object3D();
+	Santa.castShadow = true;
+	Santa.receiveShadow = true;
+  var tgaloader = new TGALoader();
+  tgaloader.load('santa.tga',function ( materials ) {
+    loader = new THREE.ColladaLoader();
+    loader.setMaterials(materials)
+    loader.load('SANTA.dae',function colladaReady( collada ){
+    player = collada.scene;
+    player.scale.set(10,10,10)
+    Santa.add( player );
+  });
+});
+
+  Santa.name = 'Santa';
+	return Santa;
+}*/
+
+function animate() {
+  update();
+  render();
+  requestAnimationFrame(animate);
+}
+
+
+function render() {
+  renderer.render(scene, camera);
+}
+
+function initStats() {
+
+    let stats = new Stats();
+
+    document.body.appendChild(stats.domElement);
+
+    return stats;
+
+}
+
+function update() {
+
+    stats.update();
+
+    let vertices = points.geometry.vertices;
+    vertices.forEach(function (v) {
+
+        v.y = v.y - (v.velocityY);
+        v.x = v.x - (v.velocityX);
+
+        if (v.y <= 0) v.y = 300;
+        if (v.x <= -20 || v.x >= 20) v.velocityX = v.velocityX * -1;
+
+    });
+    /* 顶点变动之后需要更新，否则无法实现雨滴特效 */
+    points.geometry.verticesNeedUpdate = true;
+
+}
+function onWindowResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+
+
+</script>
+</body>
+</html>
